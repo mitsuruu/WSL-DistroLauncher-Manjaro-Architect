@@ -89,3 +89,8 @@ Language=English
 The distribution installation has become corrupted.
 Please select Reset from App Settings or uninstall and reinstall the app.
 .
+
+MessageId=1014 SymbolicName=MSG_CONFIGURE_PACMAN
+Language=English
+Do you want to configure pacman keys and update existing software?: %0
+.

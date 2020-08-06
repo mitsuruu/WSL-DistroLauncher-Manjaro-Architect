@@ -13,13 +13,16 @@ namespace DistributionInfo
     //
     // WARNING: This value must not change between versions of your app,
     // otherwise users upgrading from older versions will see launch failures.
-    const std::wstring Name = L"MyDistribution";
+    const std::wstring Name = L"ManjaroArchitect";
 
     // The title bar for the console window while the distribution is installing.
-    const std::wstring WindowTitle = L"My Distribution";
+    const std::wstring WindowTitle = L"Manjaro Architect 20.0.3";
 
-    // Create and configure a user account.
+    // Create a user account.
     bool CreateUser(std::wstring_view userName);
+
+    // Configure pacman keys and updates
+    bool ConfigurePacman();
 
     // Query the UID of the user account.
     ULONG QueryUid(std::wstring_view userName);

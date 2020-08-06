@@ -42,7 +42,6 @@ HRESULT InstallDistribution(bool createUser)
         std::wstring userName;
         do {
             userName = Helpers::GetUserInput(MSG_ENTER_USERNAME, 32);
-
         } while (!DistributionInfo::CreateUser(userName));
 
         // Set this user account as the default.
@@ -51,6 +50,16 @@ HRESULT InstallDistribution(bool createUser)
             return hr;
         }
     }
+
+    // Configures pacman keys and updates software
+    std::wstring yesOrNo;
+    do {
+        yesOrNo = Helpers::GetUserInput(MSG_CONFIGURE_PACMAN, 1);
+        if (yesOrNo == L"n")
+        {
+            break;
+        }
+    } while (!DistributionInfo::ConfigurePacman());
 
     return hr;
 }

@@ -9,23 +9,77 @@ bool DistributionInfo::CreateUser(std::wstring_view userName)
 {
     // Create the user account.
     DWORD exitCode;
-    std::wstring commandLine = L"/usr/sbin/adduser --quiet --gecos '' ";
+    std::wstring commandLine = L"/usr/bin/useradd -m ";
     commandLine += userName;
     HRESULT hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
-    if ((FAILED(hr)) || (exitCode != 0)) {
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
+        return false;
+    }
+
+    commandLine = L"/usr/bin/passwd ";
+    commandLine += userName;
+    hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
+        // Delete the user if the group add command failed.
+        commandLine = L"/usr/bin/userdel ";
+        commandLine += userName;
+        g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+        return false;
+    }
+    
+    commandLine = L"/usr/bin/sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/g' /etc/sudoers";
+    hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
+        // Delete the user if the group add command failed.
+        commandLine = L"/usr/bin/userdel ";
+        commandLine += userName;
+        g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
         return false;
     }
 
     // Add the user account to any relevant groups.
-    commandLine = L"/usr/sbin/usermod -aG adm,cdrom,sudo,dip,plugdev ";
+    commandLine = L"/usr/bin/usermod -aG wheel ";
     commandLine += userName;
     hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
-    if ((FAILED(hr)) || (exitCode != 0)) {
-
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
         // Delete the user if the group add command failed.
-        commandLine = L"/usr/sbin/deluser ";
+        commandLine = L"/usr/bin/userdel ";
         commandLine += userName;
         g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+        return false;
+    }
+
+    return true;
+}
+
+bool DistributionInfo::ConfigurePacman()
+{
+    // Update packages and allow all required PGP keys
+    DWORD exitCode;
+    std::wstring commandLine = L"/usr/bin/pacman -Syu --noconfirm";
+    HRESULT hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
+        return false;
+    }
+
+    // Initialize keyring for pacman
+    commandLine = L"/usr/bin/pacman-key --init";
+    hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
+        return false;
+    }
+
+    // Reload the default keys
+    commandLine = L"/usr/bin/pacman-key --populate";
+    hr = g_wslApi.WslLaunchInteractive(commandLine.c_str(), true, &exitCode);
+    if ((FAILED(hr)) || (exitCode != 0))
+    {
         return false;
     }
 
