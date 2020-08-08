@@ -36,6 +36,24 @@ HRESULT InstallDistribution(bool createUser)
         return hr;
     }
 
+    // Configures pacman keys and updates software
+    // Run this *BEFORE* running DistributionInfo::CreateUser() to reduce duplicate password entry
+    std::wstring yesOrNo;
+    do {
+        yesOrNo = Helpers::GetUserInput(MSG_CONFIGURE_PACMAN, 1);
+        if (yesOrNo == L"n")
+        {
+            break;
+        }
+    } while (!DistributionInfo::ConfigurePacman());
+
+    // Clear the screen
+    hr = g_wslApi.WslLaunchInteractive(L"clear", true, &exitCode);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
     // Create a user account.
     if (createUser) {
         Helpers::PrintMessage(MSG_CREATE_USER_PROMPT);
@@ -50,16 +68,6 @@ HRESULT InstallDistribution(bool createUser)
             return hr;
         }
     }
-
-    // Configures pacman keys and updates software
-    std::wstring yesOrNo;
-    do {
-        yesOrNo = Helpers::GetUserInput(MSG_CONFIGURE_PACMAN, 1);
-        if (yesOrNo == L"n")
-        {
-            break;
-        }
-    } while (!DistributionInfo::ConfigurePacman());
 
     return hr;
 }
