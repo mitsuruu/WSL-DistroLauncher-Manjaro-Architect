@@ -41,7 +41,8 @@ HRESULT InstallDistribution(bool createUser)
     std::wstring yesOrNo;
     do {
         yesOrNo = Helpers::GetUserInput(MSG_CONFIGURE_PACMAN, 1);
-        if (yesOrNo == L"n")
+        if (yesOrNo.find(L"y") == std::wstring::npos
+            || yesOrNo.find(L"Y") == std::wstring::npos)
         {
             break;
         }
